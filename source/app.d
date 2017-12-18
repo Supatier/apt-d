@@ -77,8 +77,8 @@ void main(string[] args) {
 		}
 		showHelp = true;
 		argcommand = args[2];
-		auto argopt = args[3 .. $];
-		if (argopt.length !=) {
+		argopt = args[3 .. $];
+		if (argopt.length != 0) {
 			argoptions = argopt[0];
 		}
 	}
