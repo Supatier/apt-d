@@ -77,7 +77,10 @@ void main(string[] args) {
 		}
 		showHelp = true;
 		argcommand = args[2];
-		//argoptions = args[3 .. $];
+		auto argopt = args[3 .. $];
+		if (argopt.length !=) {
+			argoptions = argopt[0];
+		}
 	}
 
 	if (argcommand in aliases) {
