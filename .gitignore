@@ -1,0 +1,14 @@
+.dub
+docs.json
+__dummy.html
+docs/
+tweed.so
+tweed.dylib
+tweed.dll
+tweed.a
+tweed.lib
+tweed-test-*
+*.exe
+*.o
+*.obj
+*.lst

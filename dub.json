@@ -1,0 +1,9 @@
+{
+	"name": "apt-d",
+	"authors": [
+		"supatier"
+	],
+	"description": "Linux Mint's apt rewrite in D",
+	"copyright": "Copyright © 2017, supatier",
+	"license": "MPL-2.0"
+}
