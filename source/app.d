@@ -2,13 +2,14 @@
 import core.stdc.stdlib : exit, EXIT_FAILURE;
 import core.sys.posix.unistd : getuid;
 import std.algorithm : canFind;
-import std.array : split;
+import std.array : join, split;
 import std.conv : text;
-import std.process; // : executeShell, spawnShell, wait, pipeShell, pipeProcess, Redirect;
-import std.stdio; // : stdin, stdout, write, writeln;
+import std.exception : enforce;
+import std.process : executeShell, spawnShell, wait;
+import std.stdio : stderr, stdin, stdout, write;
 
 void usage() {
-	writeln("
+	write("
 apt
 Usage:	apt command [options]
 	apt help command [options]
@@ -66,7 +67,7 @@ void main(string[] args) {
 	auto argopt = args[2 .. $];
 	auto argoptions = "";
 	if (argopt.length != 0) {
-		argoptions = argopt[0];
+		argoptions = text(join(argopt, " "));
 	}
 	auto command = "";
 	bool showHelp, sort, highlight = false;
@@ -78,7 +79,7 @@ void main(string[] args) {
 		argcommand = args[2];
 		argopt = args[3 .. $];
 		if (argopt.length != 0) {
-			argoptions = argopt[0];
+			argoptions = text(join(argopt, " "));
 		}
 	}
 
@@ -123,16 +124,16 @@ void main(string[] args) {
 	} else if (argcommand == "add-repository") {
 		command = text("add-apt-repository ", argoptions);
 	} else if (argcommand == "search") {
-		const string sSize = text("\"", executeShell("stty size"), "\"");
-		//enforce(sSize.status == 0);
-		auto nex = sSize.split;
+		auto sSize = executeShell("stty size");
+		enforce(sSize.status == 0);
+		auto nex = sSize.output.split;
 		auto columns = nex[1];
-		command = text("aptitude -w ", columns, " ", argcommand, " ", argoptions);
+		command = text("/usr/bin/aptitude -w ", columns, " ", argcommand, " ", argoptions);
 	} else {
 		usage();
 	}
 
-	auto uid = getuid();
+	const int uid = getuid();
 	if (uid != 0 && ["autoremove", "install", "remove", "purge", "update", "upgrade", "full-upgrade",
 			"edit-sources", "clean", "dselect-upgrade", "build-dep",
 			"check", "autoclean", "reinstall", "deb",
@@ -154,21 +155,18 @@ void main(string[] args) {
 		write("\"apt ", argcommand, " ", argoptions,
 				"\" is equivalent to \"", command, "\"");
 	} else if (sort && highlight) {
-		auto ps1 = spawnProcess(command, stdout, stderr);
-		auto ps2 = spawnProcess("sort", stdin, stdout); //, stdin=ps1.stdout, stdout);
-		auto ps3 = spawnProcess(["highlight", argoptions], stdin, stdout); //, ps2.stdout);
+		auto pid = spawnShell(text(command, " | sort | highlight ",
+				argoptions), stdin, stdout);
 		scope (exit)
-			wait(ps3.Pid);
+			wait(pid);
 	} else if (sort) {
-		auto ps1 = spawnProcess(command, stdout, stderr);
-		auto ps2 = spawnProcess("sort", stdin, stdout);
+		auto pid = spawnShell(text(command, " | sort"), stdout, stderr);
 		scope (exit)
-			wait(ps2.Pid);
+			wait(pid);
 	} else if (highlight) {
-		auto ps1 = spawnProcess(command, stdout, stderr);
-		auto ps2 = spawnProcess(["highlight", argoptions], stdin, stdout);
+		auto pid = spawnShell(text(command, " | highlight ", argoptions), stdout, stderr);
 		scope (exit)
-			wait(ps2.Pid);
+			wait(pid);
 	} else {
 		auto pid = spawnShell(command, stdin, stdout);
 		scope (exit)
