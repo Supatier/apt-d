@@ -4,8 +4,8 @@ import core.sys.posix.unistd : getuid;
 import std.algorithm : canFind;
 import std.array : split;
 import std.conv : text;
-import std.process : executeShell, spawnShell, wait;
-import std.stdio : write, writeln, stdin, stdout;
+import std.process; // : executeShell, spawnShell, wait, pipeShell, pipeProcess, Redirect;
+import std.stdio; // : stdin, stdout, write, writeln;
 
 void usage() {
 	writeln("
@@ -123,7 +123,7 @@ void main(string[] args) {
 	} else if (argcommand == "add-repository") {
 		command = text("add-apt-repository ", argoptions);
 	} else if (argcommand == "search") {
-		auto sSize = text("\"", executeShell("stty size"), "\"");
+		const string sSize = text("\"", executeShell("stty size"), "\"");
 		//enforce(sSize.status == 0);
 		auto nex = sSize.split;
 		auto columns = nex[1];
@@ -153,10 +153,25 @@ void main(string[] args) {
 	if (showHelp) {
 		write("\"apt ", argcommand, " ", argoptions,
 				"\" is equivalent to \"", command, "\"");
+	} else if (sort && highlight) {
+		auto ps1 = spawnProcess(command, stdout, stderr);
+		auto ps2 = spawnProcess("sort", stdin, stdout); //, stdin=ps1.stdout, stdout);
+		auto ps3 = spawnProcess(["highlight", argoptions], stdin, stdout); //, ps2.stdout);
+		scope (exit)
+			wait(ps3.Pid);
+	} else if (sort) {
+		auto ps1 = spawnProcess(command, stdout, stderr);
+		auto ps2 = spawnProcess("sort", stdin, stdout);
+		scope (exit)
+			wait(ps2.Pid);
+	} else if (highlight) {
+		auto ps1 = spawnProcess(command, stdout, stderr);
+		auto ps2 = spawnProcess(["highlight", argoptions], stdin, stdout);
+		scope (exit)
+			wait(ps2.Pid);
 	} else {
 		auto pid = spawnShell(command, stdin, stdout);
 		scope (exit)
 			wait(pid);
 	}
-	// Todo : highlight, sort
 }
