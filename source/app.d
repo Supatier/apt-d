@@ -8,6 +8,7 @@ import std.exception : enforce;
 import std.process : executeShell, spawnShell, wait;
 import std.stdio : stderr, stdin, stdout, write;
 
+/// Print help
 void usage() {
 	write("
 apt
