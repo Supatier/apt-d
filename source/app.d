@@ -64,13 +64,13 @@ void main(string[] args) {
 	if (args.length < 2) {
 		usage();
 	}
-	auto argcommand = args[1];
-	auto argopt = args[2 .. $];
-	auto argoptions = "";
+	string argcommand = args[1];
+	string[] argopt = args[2 .. $];
+	string argoptions = "";
 	if (argopt.length != 0) {
 		argoptions = text(join(argopt, " "));
 	}
-	auto command = "";
+	string command = "";
 	bool showHelp, sort, highlight = false;
 	if (argcommand == "help") {
 		if (args.length < 3) {
